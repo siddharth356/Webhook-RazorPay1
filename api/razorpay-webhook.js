@@ -1,3 +1,9 @@
+// api/razorpay-webhook.js
+export default function handler(req, res) {
+  console.log("Webhook hit!");
+  res.status(200).send("Serverless function running!");
+}
+
 import axios from "axios";
 
 export default async function handler(req, res) {

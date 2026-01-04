@@ -1,7 +1,3 @@
-// api/razorpay-webhook.js
-export default function handler(req, res) {
-  res.status(200).send("Hello from webhook!");
-}
 import axios from "axios";
 
 export default async function handler(req, res) {
@@ -72,4 +68,3 @@ Happy Editing!
     res.status(500).json({ error: "Webhook processing failed" });
   }
 }
-

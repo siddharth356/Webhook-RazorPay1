@@ -1,36 +1,48 @@
-import axios from 'axios';
+import axios from "axios";
 
 export default async function handler(req, res) {
-    if (req.method === 'POST') {
-        const event = req.body.event;
-        const payment = req.body.payload.payment.entity;
+  if (req.method !== "POST") return res.status(405).send("Method Not Allowed");
 
-        // Only process successful payments
-        if (event === 'payment.captured' && payment.status === 'captured') {
-            try {
-                // ---- SYSTEM.IO API CALL ----
-                await axios.post('https://api.systeme.io/v1/orders', {
-                    email: payment.email,                  // Buyer's email
-                    product_id: '544903',                  // Your product ID
-                    amount: payment.amount / 100           // Razorpay amount is in paise → convert to INR
-                }, {
-                    headers: {
-                        Authorization: 'Bearer arq9rh4pcduoitot5luxnvjvdbma4ufppjhjtkzwol6940zhwn59l7t7d9mpglj2'
-                    }
-                });
+  try {
+    const buyerEmail = req.body.payload.payment.entity.email;
 
-                console.log('Payment processed for:', payment.email);
-                res.status(200).json({ message: 'Webhook processed successfully' });
+    const SYSTEM_IO_PRODUCT_ID = "544903";
+    const SYSTEM_IO_API_KEY = "arq9rh4pcduoitot5luxnvjvdbma4ufppjhjtkzwol6940zhwn59l7t7d9mpglj2";
 
-            } catch (err) {
-                console.error('Error processing webhook:', err);
-                res.status(500).json({ error: 'Error processing webhook' });
-            }
-        } else {
-            // Ignore non-captured payments
-            res.status(200).json({ message: 'Not a captured payment' });
-        }
-    } else {
-        res.status(405).send('Method not allowed');
-    }
+    // 1️⃣ Create the order
+    const orderResponse = await axios.post(
+      "https://api.systeme.io/products/orders",
+      {
+        product_id: SYSTEM_IO_PRODUCT_ID,
+        buyer_email: buyerEmail,
+        price: 1  // Test price
+      },
+      { headers: { "x-api-key": SYSTEM_IO_API_KEY } }
+    );
+
+    // 2️⃣ Send the post-purchase email immediately,
+    await axios.post(
+      "https://api.systeme.io/emails/send",
+      {
+        to: buyerEmail,
+        subject: "Your No Face Editor System is Ready!",
+        body: `
+          Hey there,
+
+          Your No Face Editor System is ready. 🎉
+
+          Download your PDF guide and templates here:https://drive.google.com/drive/folders/195Okp4LEFMXuiuD_8iiFTL8j51QHaPEx?usp=drive_link
+
+          Happy Editing!
+        `
+      },
+      { headers: { "x-api-key": SYSTEM_IO_API_KEY } }
+    );
+
+    res.status(200).json({ message: "Webhook processed & email sent" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Webhook failed" });
+  }
 }
+

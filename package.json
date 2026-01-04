@@ -1,13 +1,16 @@
-
 {
-  "name": "webhook-razorpay",
+  "name": "vercel-razorpay-webhook",
   "version": "1.0.0",
+  "description": "Webhook for Razorpay → system.io orders + email",
+  "type": "module",
   "main": "index.js",
   "scripts": {
     "start": "node index.js"
-    npm install axios
-
-    
+  },
+  "dependencies": {
+    "axios": "^1.6.0"
+  },
+  "engines": {
+    "node": "18.x"
   }
-
 }
